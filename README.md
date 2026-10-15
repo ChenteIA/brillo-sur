@@ -7,7 +7,9 @@ Web de la distribuidora Brillo Sur (Mala, Cañete): catálogo público con carri
 - **Tareas del dueño:** ver [`PENDIENTES.md`](./PENDIENTES.md).
 
 ```
-brillo-sur/
+.
+├─ .github/            CI (seguridad.yml) y Dependabot
+├─ .githooks/          hook pre-push con gitleaks
 ├─ src/app/            páginas: landing, /api/orders, /admin (panel), /privacidad
 ├─ src/components/     landing, catálogo/carrito, Turnstile
 ├─ src/lib/            Supabase, validación (Zod), seguridad, WhatsApp
@@ -28,8 +30,8 @@ brillo-sur/
 ## 2. Instalación local
 
 ```bash
-git clone <url-del-repo>
-cd xchentex/brillo-sur
+git clone https://github.com/ChenteIA/brillo-sur.git
+cd brillo-sur
 npm ci
 cp .env.example .env.local     # llena los valores (sección 3)
 npm run dev                    # http://localhost:3000
@@ -108,13 +110,12 @@ Desde ahí, el dueño crea al resto del personal en **Panel → Usuarios** (rol 
 
 ## 7. Desplegar en Vercel
 
-1. Vercel → **Add New → Project** → importa el repositorio de GitHub.
-2. **Root Directory: `brillo-sur`** (el proyecto vive en esa carpeta).
-3. Framework: Next.js (se detecta solo). Node.js: 22.x.
-4. Carga las 8 variables de la sección 3 en *Production* (y en *Preview* si usarás previews).
-5. **Deploy.**
-6. Dominio `.pe`: Project → Settings → **Domains** → agrega `brillosur.pe` y `www.brillosur.pe`, y crea en tu proveedor del dominio los registros DNS que indique Vercel. Vercel emite el certificado HTTPS automáticamente y redirige HTTP → HTTPS.
-7. Actualiza `NEXT_PUBLIC_SITE_URL`, el *Site URL* de Supabase y los hostnames de Turnstile con el dominio final, y vuelve a desplegar.
+1. Vercel → **Add New → Project** → importa el repositorio `ChenteIA/brillo-sur`.
+2. Framework: Next.js (se detecta solo). Node.js: 22.x. No hace falta cambiar el *Root Directory*.
+3. Carga las 8 variables de la sección 3 en *Production* (y en *Preview* si usarás previews).
+4. **Deploy.**
+5. Dominio `.pe`: Project → Settings → **Domains** → agrega `brillosur.pe` y `www.brillosur.pe`, y crea en tu proveedor del dominio los registros DNS que indique Vercel. Vercel emite el certificado HTTPS automáticamente y redirige HTTP → HTTPS.
+6. Actualiza `NEXT_PUBLIC_SITE_URL`, el *Site URL* de Supabase y los hostnames de Turnstile con el dominio final, y vuelve a desplegar.
 
 ## 8. Scripts
 

@@ -2,12 +2,12 @@
 
 Estado al cierre de la Fase 6. ✅ = implementado y probado · ⚠️ = implementado, requiere una acción del dueño en producción (ver [`PENDIENTES.md`](./PENDIENTES.md)).
 
-Las rutas son relativas a `brillo-sur/`.
+Las rutas son relativas a la raíz del repositorio.
 
 | # | Punto | Estado | Dónde y cómo |
 | --- | --- | --- | --- |
 | 1 | Ocultar API Key | ✅ | Todas las claves vienen de variables de entorno; `.env.example` solo lista nombres. Las secretas se leen en `src/lib/env.server.ts` y `src/lib/supabase/admin.ts`, marcados con `server-only` (el build falla si un componente del navegador los importa). Verificado: ninguna clave aparece en `.next/static`. |
-| 2 | Purgar secrets de Git | ✅ | `.env*` en `.gitignore` desde el primer commit (raíz y proyecto). gitleaks en CI (`.github/workflows/seguridad.yml`, historial completo), hook `.githooks/pre-push` y `npm run scan:secrets`. Historial escaneado: sin fugas. Procedimiento de rotación + `git filter-repo` en el README §9. |
+| 2 | Purgar secrets de Git | ✅ | `.env*` en `.gitignore` desde el primer commit. gitleaks en CI (`.github/workflows/seguridad.yml`, historial completo), hook `.githooks/pre-push` y `npm run scan:secrets`. Historial escaneado: sin fugas. Procedimiento de rotación + `git filter-repo` en el README §9. |
 | 3 | Key pública de BD | ✅ | Solo `NEXT_PUBLIC_SUPABASE_ANON_KEY` fuera de las tareas de servidor acotadas. De hecho, el navegador no habla con Supabase: el catálogo se lee en el servidor (`src/lib/catalog.ts`) y la sesión vive en cookies. |
 | 4 | RLS | ✅ | `supabase/migrations/20261014000001_esquema_inicial.sql`: RLS en las 6 tablas + permisos mínimos por columna. Público: solo lee categorías/productos activos y columnas necesarias. Pedidos/ítems: solo `owner`/`staff`. `profiles`: cada uno ve el suyo; nadie cambia su propio rol (política + trigger). Pruebas: 43 pgTAP (`supabase/tests/rls.test.sql`) y 9 con la clave pública real (`scripts/rls-remote.test.mjs`). |
 | 5 | Encriptación | ✅ | HTTPS en tránsito (puntos 18–19); Supabase cifra en reposo. El celular se guarda con `pgp_sym_encrypt` (pgcrypto) y la clave (`PHONE_ENCRYPTION_KEY`) nunca entra a la BD. Solo se piden nombre del negocio y celular (Ley 29733); aviso en `/privacidad`. |
