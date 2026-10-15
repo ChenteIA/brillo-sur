@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { loginSchema } from "@/lib/admin-schemas";
 import { allowRequest } from "@/lib/security/rate-limit";
 import { clientIp, hashedKey } from "@/lib/security/request";
+import { allowedHostnames } from "@/lib/security/hostnames";
 import { verifyTurnstile } from "@/lib/security/turnstile";
 import { publicEnv } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
@@ -36,8 +37,8 @@ export async function login(_prev: LoginState, formData: FormData): Promise<Logi
     return { error: "Demasiados intentos. Espera 15 minutos e inténtalo de nuevo." };
   }
 
-  const siteHost = new URL(publicEnv().NEXT_PUBLIC_SITE_URL).hostname;
-  if (!(await verifyTurnstile(turnstileToken, ip, siteHost))) {
+  const hosts = allowedHostnames(publicEnv().NEXT_PUBLIC_SITE_URL, h.get("host"));
+  if (!(await verifyTurnstile(turnstileToken, ip, hosts))) {
     return { error: "No pudimos verificar que eres una persona. Recarga la página." };
   }
 

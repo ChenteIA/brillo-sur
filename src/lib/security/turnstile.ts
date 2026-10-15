@@ -1,6 +1,7 @@
 import "server-only";
 
 import { serverEnv } from "@/lib/env.server";
+import { isTurnstileTestSecret } from "@/lib/security/hostnames";
 
 const VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 
@@ -8,9 +9,10 @@ const VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
  * Valida en el servidor el token de Cloudflare Turnstile (punto 12).
  * Cada token sirve una sola vez y caduca a los 5 minutos.
  */
-export async function verifyTurnstile(token: string, ip: string, expectedHostname?: string): Promise<boolean> {
+export async function verifyTurnstile(token: string, ip: string, allowedHosts: string[]): Promise<boolean> {
   try {
-    const body = new URLSearchParams({ secret: serverEnv().TURNSTILE_SECRET_KEY, response: token });
+    const secret = serverEnv().TURNSTILE_SECRET_KEY;
+    const body = new URLSearchParams({ secret, response: token });
     if (ip && ip !== "unknown") body.set("remoteip", ip);
 
     const res = await fetch(VERIFY_URL, {
@@ -28,8 +30,11 @@ export async function verifyTurnstile(token: string, ip: string, expectedHostnam
       console.warn("[turnstile] rechazado", data["error-codes"]);
       return false;
     }
-    // Con las claves de prueba de Cloudflare el hostname es "example.com"; se valida solo en producción.
-    if (process.env.VERCEL_ENV === "production" && expectedHostname && data.hostname !== expectedHostname) {
+    // En producción el token debe venir de nuestro dominio. Las claves de prueba de
+    // Cloudflare siempre reportan "example.com" (y no protegen nada): se avisa en el log.
+    if (isTurnstileTestSecret(secret)) {
+      if (process.env.VERCEL_ENV === "production") console.warn("[turnstile] usando claves de PRUEBA en producción");
+    } else if (process.env.VERCEL_ENV === "production" && !allowedHosts.includes(data.hostname ?? "")) {
       console.warn("[turnstile] hostname inesperado", data.hostname);
       return false;
     }

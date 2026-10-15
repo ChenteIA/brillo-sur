@@ -5,6 +5,7 @@ import { toCents } from "@/lib/money";
 import { createOrderResultSchema, orderRequestSchema } from "@/lib/order-schema";
 import { allowRequest } from "@/lib/security/rate-limit";
 import { clientIp, hashedKey, isSameOrigin } from "@/lib/security/request";
+import { allowedHostnames } from "@/lib/security/hostnames";
 import { verifyTurnstile } from "@/lib/security/turnstile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { orderMessage, waLink } from "@/lib/whatsapp";
@@ -60,8 +61,8 @@ export async function POST(request: NextRequest) {
   const order = parsed.data;
 
   // 5. Anti-bot.
-  const siteHost = new URL(env.NEXT_PUBLIC_SITE_URL).hostname;
-  if (!(await verifyTurnstile(order.turnstileToken, ip, siteHost))) return fail(403, MSG.bot);
+  const hosts = allowedHostnames(env.NEXT_PUBLIC_SITE_URL, request.headers.get("host"));
+  if (!(await verifyTurnstile(order.turnstileToken, ip, hosts))) return fail(403, MSG.bot);
 
   // 6. La base de datos busca los precios reales, recalcula y guarda (punto 8).
   const { data, error } = await createAdminClient().rpc("create_order", {
